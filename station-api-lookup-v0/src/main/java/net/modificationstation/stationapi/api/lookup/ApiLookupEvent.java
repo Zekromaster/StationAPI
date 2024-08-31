@@ -1,33 +1,33 @@
 package net.modificationstation.stationapi.api.lookup;
 
 import net.mine_diver.unsafeevents.Event;
-import net.modificationstation.stationapi.api.util.exception.LookupException;
 
-import java.util.Optional;
-
-public abstract class ApiLookupEvent extends Event {
+public abstract class ApiLookupEvent<T> extends Event {
     public final Class<?> apiClass;
-    private Object apiInstance;
+    private final T defaultValue;
 
-    public ApiLookupEvent(Class<?> apiClass) {
+    private T foundObject;
+
+    public ApiLookupEvent(
+        Class<?> apiClass,
+        T defaultValue
+    ) {
         this.apiClass = apiClass;
+        this.defaultValue = defaultValue;
     }
 
-    public void found(Object apiInstance) {
-        if (!apiClass.isInstance(apiInstance)) {
-            throw new LookupException(apiClass, apiInstance.getClass());
-        }
-        this.apiInstance = apiInstance;
+    protected void found(T foundObject) {
+        this.foundObject = foundObject;
         if (this.isCancelable()) {
             this.cancel();
         }
     }
 
-    public Optional<?> getApi() {
-        if (apiClass.isInstance(this.apiInstance)) {
-            return Optional.of(apiInstance);
+    public T getFoundObject() {
+        if (apiClass.isInstance(this.foundObject)) {
+            return foundObject;
         } else {
-            return Optional.empty();
+            return defaultValue;
         }
     }
 
